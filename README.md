@@ -53,14 +53,35 @@ herdr plugin install Taanviir/herdr-projects
 herdr plugin action invoke taanviir.projects.setup
 ```
 
-Setup binds `prefix+f`. Set `PROJECTS_KEY` first to use another key. A key
-that is already bound is left alone.
+Setup binds `prefix+f` to the popup and `prefix+i` to the CI watch. Set
+`PROJECTS_KEY` or `PROJECTS_CI_KEY` first to use other keys. A key that is
+already bound is left alone.
 
 To look for checkouts somewhere other than `~/projects`, add `config.json` to
 the plugin's config directory (`herdr plugin config-dir taanviir.projects`):
 
 ```json
 { "roots": ["~/projects", "~/work"] }
+```
+
+## CI on the sidebar
+
+After a push, press `prefix+i`. The workspace's sidebar row shows `● CI` while
+the GitHub Actions runs for the commit you are on are going, then `✓ CI` or
+`✗ CI`, with a notification naming any workflow that failed. A pass clears
+itself after 30 minutes; a failure stays until the next watch. It needs `gh`,
+signed in.
+
+The badge is the `$ci` token, so add it to a row in `config.toml`:
+
+```toml
+[ui.sidebar.spaces]
+rows = [
+  ["state_icon", "workspace", { token = "$ci", fg = "#e8b04b", rules = [
+    { contains = "✓", fg = "#7bc47f" },
+    { contains = "✗", fg = "#ef6b6b", bold = true },
+  ] }],
+]
 ```
 
 ## How it reads your history
@@ -78,6 +99,7 @@ Nothing is written to either agent's files.
 | --- | --- |
 | plugin state dir, `sessions.json` | the session index |
 | plugin state dir, `crash.log` | errors from the popup |
+| plugin state dir, `ci-<workspace>.pid` | the CI watch running for a workspace |
 
 ## Developing
 
