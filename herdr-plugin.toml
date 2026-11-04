@@ -18,6 +18,12 @@ contexts = ["workspace"]
 command = ["node", "bin/ci.js"]
 
 [[actions]]
+id = "git-hook"
+title = "Watch CI on every git push"
+contexts = ["workspace"]
+command = ["node", "bin/git-hook.js"]
+
+[[actions]]
 id = "setup"
 title = "Set up the Projects key"
 contexts = ["workspace"]

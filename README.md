@@ -66,11 +66,25 @@ the plugin's config directory (`herdr plugin config-dir taanviir.projects`):
 
 ## CI on the sidebar
 
-After a push, press `prefix+i`. The workspace's sidebar row shows `● CI` while
-the GitHub Actions runs for the commit you are on are going, then `✓ CI` or
-`✗ CI`, with a notification naming any workflow that failed. A pass clears
-itself after 30 minutes; a failure stays until the next watch. It needs `gh`,
-signed in.
+After a push, the workspace's sidebar row shows `● CI` while the GitHub Actions
+runs for the pushed commit are going, then `✓ CI` or `✗ CI`, with a
+notification naming any workflow that failed. A pass clears itself after 30
+minutes; a failure stays until the next watch. The popup shows the last result
+next to each project too, so CI on the others is one glance away. It needs
+`gh`, signed in.
+
+To start it on every `git push` made in a Herdr pane:
+
+```bash
+herdr plugin action invoke taanviir.projects.git-hook
+```
+
+That points git's global `core.hooksPath` at `~/.config/git/hooks` and fills it
+with a hook that runs each repository's own hook of the same name, so
+repositories keep theirs. A hook of yours already in that folder is left
+alone, and so is a `core.hooksPath` you set elsewhere; a repository with its
+own `core.hooksPath` (husky, for one) skips the watch. Without the hook,
+`prefix+i` starts a watch for the commit you are on.
 
 The badge is the `$ci` token, so add it to a row in `config.toml`:
 
@@ -100,6 +114,7 @@ Nothing is written to either agent's files.
 | plugin state dir, `sessions.json` | the session index |
 | plugin state dir, `crash.log` | errors from the popup |
 | plugin state dir, `ci-<workspace>.pid` | the CI watch running for a workspace |
+| plugin state dir, `ci.json` | the last CI result for each checkout |
 
 ## Developing
 
