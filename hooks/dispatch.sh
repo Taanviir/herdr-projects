@@ -5,6 +5,9 @@
 # for the commit being pushed.
 
 name=$(basename "$0")
+# Filled in on install: a push runs outside Herdr, which only tells the
+# plugin's own commands where its state lives.
+state_dir=@STATE_DIR@
 # Not --git-path: that answers with the global hooks folder, this one.
 own="$(git rev-parse --git-common-dir 2>/dev/null)/hooks/$name"
 
@@ -15,7 +18,7 @@ if [ "$name" = pre-push ]; then
     root=$("${HERDR_BIN_PATH:-herdr}" plugin list --json 2>/dev/null |
       node -e 'let s="";process.stdin.on("data",(d)=>(s+=d)).on("end",()=>{try{const j=JSON.parse(s);const p=(j.result??j).plugins.find((p)=>p.plugin_id==="taanviir.projects"&&p.enabled!==false);if(p)console.log(p.plugin_root)}catch{}})')
     if [ -n "$sha" ] && [ -f "$root/bin/ci.js" ]; then
-      (node "$root/bin/ci.js" --watch "$HERDR_WORKSPACE_ID" "$PWD" "$sha" >/dev/null 2>&1 &)
+      (env ${state_dir:+"HERDR_PLUGIN_STATE_DIR=$state_dir"} node "$root/bin/ci.js" --watch "$HERDR_WORKSPACE_ID" "$PWD" "$sha" >/dev/null 2>&1 &)
     fi
   fi
   if [ -x "$own" ]; then

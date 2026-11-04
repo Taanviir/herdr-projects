@@ -19,7 +19,10 @@ const NAMES = [
 
 const git = (...args) => spawnSync("git", args, { encoding: "utf8" });
 
-function install(dir, script) {
+const quoted = (text) => `'${text.replace(/'/g, "'\\''")}'`;
+
+function install(dir, template, stateDir = process.env.HERDR_PLUGIN_STATE_DIR ?? "") {
+  const script = template.replace("@STATE_DIR@", quoted(stateDir));
   const current = git("config", "--global", "--get", "core.hooksPath").stdout.trim();
   if (current && path.resolve(current.replace(/^~/, os.homedir())) !== dir) {
     return [`core.hooksPath is already ${current}, so nothing changed. Copy hooks/dispatch.sh there as pre-push to watch CI on push.`];
