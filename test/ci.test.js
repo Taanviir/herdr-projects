@@ -41,3 +41,12 @@ test("a commit that never gets runs takes the badge off", async () => {
   assert.strictEqual(value, "none");
   assert.deepStrictEqual(shown, ["running", null]);
 });
+
+test("the popup keeps a failure, drops a pass after a day, and a watch that went quiet", () => {
+  const { shown } = require("../lib/ci");
+  const hour = 60 * 60_000;
+  assert.strictEqual(shown({ state: "fail", at: 0 }, 30 * 24 * hour).state, "fail");
+  assert.strictEqual(shown({ state: "pass", at: 0 }, 23 * hour).state, "pass");
+  assert.strictEqual(shown({ state: "pass", at: 0 }, 25 * hour), null);
+  assert.strictEqual(shown({ state: "running", at: 0 }, 2 * hour), null);
+});
