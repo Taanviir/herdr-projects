@@ -1,8 +1,8 @@
 id = "taanviir.projects"
 name = "Projects"
-version = "0.1.1"
+version = "0.2.0"
 min_herdr_version = "0.9.0"
-description = "Your projects and their past Claude or Codex sessions, with any dev server running in them"
+description = "Your projects and their past Claude or Codex sessions, with any dev server running in them, and CI on the sidebar"
 platforms = ["linux", "macos", "windows"]
 
 [[actions]]
