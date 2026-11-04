@@ -2,41 +2,14 @@ id = "taanviir.projects"
 name = "Projects"
 version = "0.4.0"
 min_herdr_version = "0.9.0"
-description = "Your projects and their past Claude or Codex sessions, with any dev server running in them, and CI on the sidebar"
+description = "Your projects and their past Claude or Codex sessions, with any dev server running in them"
 platforms = ["linux", "macos", "windows"]
-
-[[startup]]
-command = ["node", "bin/sidebar.js"]
-
-[[events]]
-on = "workspace.created"
-command = ["node", "bin/sidebar.js"]
-
-[[events]]
-on = "pane.created"
-command = ["node", "bin/sidebar.js"]
-
-[[events]]
-on = "pane.closed"
-command = ["node", "bin/sidebar.js"]
 
 [[actions]]
 id = "open"
 title = "Projects"
 contexts = ["workspace"]
 command = ["node", "bin/open.js"]
-
-[[actions]]
-id = "ci"
-title = "Watch CI for this commit"
-contexts = ["workspace"]
-command = ["node", "bin/ci.js"]
-
-[[actions]]
-id = "git-hook"
-title = "Watch CI on every git push"
-contexts = ["workspace"]
-command = ["node", "bin/git-hook.js"]
 
 [[actions]]
 id = "setup"

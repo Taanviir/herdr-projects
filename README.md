@@ -53,50 +53,14 @@ herdr plugin install Taanviir/herdr-projects
 herdr plugin action invoke taanviir.projects.setup
 ```
 
-Setup binds `prefix+f` to the popup and `prefix+i` to the CI watch. Set
-`PROJECTS_KEY` or `PROJECTS_CI_KEY` first to use other keys. A key that is
-already bound is left alone.
+Setup binds `prefix+f`. Set `PROJECTS_KEY` first to use another key. A key
+that is already bound is left alone.
 
 To look for checkouts somewhere other than `~/projects`, add `config.json` to
 the plugin's config directory (`herdr plugin config-dir taanviir.projects`):
 
 ```json
 { "roots": ["~/projects", "~/work"] }
-```
-
-## CI on the sidebar
-
-After a push, the sidebar row of every workspace with a pane in that checkout
-shows `● CI` while the GitHub Actions runs for the pushed commit are going,
-then `✓ CI` or `✗ CI`, with a notification naming any workflow that failed. The
-badge belongs to the checkout, so it moves to whichever workspace you open it
-in next. A pass clears itself after 30 minutes; a failure stays until the next
-watch. The popup shows the last result next to each project too, so CI on the
-others is one glance away. It needs `gh`, signed in.
-
-To start it on every `git push` made in a Herdr pane:
-
-```bash
-herdr plugin action invoke taanviir.projects.git-hook
-```
-
-That points git's global `core.hooksPath` at `~/.config/git/hooks` and fills it
-with a hook that runs each repository's own hook of the same name, so
-repositories keep theirs. A hook of yours already in that folder is left
-alone, and so is a `core.hooksPath` you set elsewhere; a repository with its
-own `core.hooksPath` (husky, for one) skips the watch. Without the hook,
-`prefix+i` starts a watch for the commit you are on.
-
-The badge is the `$ci` token, so add it to a row in `config.toml`:
-
-```toml
-[ui.sidebar.spaces]
-rows = [
-  ["state_icon", "workspace", { token = "$ci", fg = "#e8b04b", rules = [
-    { contains = "✓", fg = "#7bc47f" },
-    { contains = "✗", fg = "#ef6b6b", bold = true },
-  ] }],
-]
 ```
 
 ## How it reads your history
@@ -114,8 +78,6 @@ Nothing is written to either agent's files.
 | --- | --- |
 | plugin state dir, `sessions.json` | the session index |
 | plugin state dir, `crash.log` | errors from the popup |
-| plugin state dir, `ci-<hash>.pid` | the CI watch running for a checkout |
-| plugin state dir, `ci.json` | the last CI result for each checkout |
 
 ## Developing
 
