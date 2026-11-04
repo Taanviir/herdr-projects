@@ -12,7 +12,6 @@ const { run, notify, BIN } = require("../lib/shared/herdr");
 const PLUGIN_ID = "taanviir.projects";
 const BINDINGS = [
   { action: "open", key: process.env.PROJECTS_KEY ?? "prefix+f", description: "Projects" },
-  { action: "ci", key: process.env.PROJECTS_CI_KEY ?? "prefix+i", description: "Watch CI" },
 ];
 
 // `herdr --help` prints the config path it actually uses.
