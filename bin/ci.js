@@ -1,43 +1,36 @@
 "use strict";
 
-// Action entrypoint: watch CI for the commit the focused pane's folder is on,
-// on the workspace's `$ci` sidebar token. The watching is a detached copy of
-// this script, so the action returns at once. One watch per workspace: a new
-// one replaces the old.
+// Action entrypoint: watch CI for the commit the focused pane's folder is on.
+// The git hook starts the same watch on every push. The watching is a
+// detached copy of this script, so the action returns at once. One watch per
+// checkout: a new one replaces the old.
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { run, notify, spawnDetached } = require("../lib/shared/herdr");
+const crypto = require("node:crypto");
+const { notify, spawnDetached } = require("../lib/shared/herdr");
 const { context, STATE_DIR } = require("../lib/shared/term");
-const { SOURCE, BADGES, PASS_TTL_MS, failed, sh, watch, remember } = require("../lib/ci");
+const { failed, sh, watch, remember, report } = require("../lib/ci");
 
 const RESULTS = path.join(STATE_DIR, "ci.json");
 
-const pidFile = (workspace) => path.join(STATE_DIR, `ci-${workspace.replace(/[^\w-]/g, "_")}.pid`);
+const pidFile = (checkout) => path.join(STATE_DIR, `ci-${crypto.createHash("sha1").update(checkout).digest("hex").slice(0, 12)}.pid`);
 
 function start() {
   const ctx = context();
   const cwd = ctx.focused_pane_cwd ?? ctx.workspace_cwd;
-  const workspace = ctx.workspace_id;
-  if (!cwd || !workspace) return;
+  if (!cwd) return;
   const sha = sh("git", ["rev-parse", "HEAD"], cwd);
   if (!sha) {
     notify("CI", `${path.basename(cwd)} is not a git checkout`);
     return;
   }
-  spawnDetached(process.execPath, [__filename, "--watch", workspace, cwd, sha]);
+  spawnDetached(process.execPath, [__filename, "--watch", cwd, sha]);
 }
 
-function show(workspace, state) {
-  const args = ["workspace", "report-metadata", workspace, "--source", SOURCE];
-  if (!state) args.push("--clear-token", "ci");
-  else args.push("--token", `ci=${BADGES[state]}`);
-  if (state === "pass") args.push("--ttl-ms", String(PASS_TTL_MS));
-  run(args, { check: false });
-}
-
-async function watching(workspace, cwd, sha) {
-  const file = pidFile(workspace);
+async function watching(cwd, sha) {
+  const checkout = sh("git", ["rev-parse", "--show-toplevel"], cwd) ?? cwd;
+  const file = pidFile(checkout);
   fs.mkdirSync(STATE_DIR, { recursive: true });
   try {
     const pid = Number(fs.readFileSync(file, "utf8"));
@@ -46,7 +39,6 @@ async function watching(workspace, cwd, sha) {
   } catch { /* none running */ }
   fs.writeFileSync(file, String(process.pid));
 
-  const checkout = sh("git", ["rev-parse", "--show-toplevel"], cwd) ?? cwd;
   const name = path.basename(checkout);
   let runs = [];
   const result = await watch({
@@ -54,8 +46,8 @@ async function watching(workspace, cwd, sha) {
     cwd,
     show: (state, found) => {
       runs = found;
-      show(workspace, state);
       remember(RESULTS, checkout, state && { state, sha, failed: failed(found), at: Date.now() });
+      report(RESULTS);
     },
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   });

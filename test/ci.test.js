@@ -50,3 +50,32 @@ test("the popup keeps a failure, drops a pass after a day, and a watch that went
   assert.strictEqual(shown({ state: "pass", at: 0 }, 25 * hour), null);
   assert.strictEqual(shown({ state: "running", at: 0 }, 2 * hour), null);
 });
+
+test("the badge follows the checkout to whichever workspaces have a pane in it", () => {
+  const { sidebar } = require("../lib/ci");
+  const now = 10 * 60 * 60_000;
+  const snapshot = {
+    workspaces: [
+      { workspace_id: "old", tokens: { ci: "✗ CI" } },
+      { workspace_id: "new" },
+      { workspace_id: "both", tokens: { ci: "✗ CI" } },
+    ],
+    panes: [
+      { workspace_id: "new", cwd: "/repo/api", foreground_cwd: "/repo/api/src" },
+      { workspace_id: "both", cwd: "/repo/api" },
+      { workspace_id: "both", cwd: "/repo/web" },
+      { workspace_id: "old", cwd: "/repo/api-docs" },
+    ],
+  };
+  const results = {
+    "/repo/api": { state: "fail", at: 0 },
+    "/repo/web": { state: "pass", at: now - 10 * 60_000 },
+  };
+  assert.deepStrictEqual(sidebar(snapshot, results, now), [
+    { workspace: "old", value: "", ttl: null },
+    { workspace: "new", value: "✗ CI", ttl: null },
+  ], "the old workspace loses it, the new one gains it, and one already right is left alone");
+
+  const passed = sidebar({ workspaces: [{ workspace_id: "w" }], panes: [{ workspace_id: "w", cwd: "/repo/web" }] }, results, now);
+  assert.deepStrictEqual(passed, [{ workspace: "w", value: "✓ CI", ttl: 20 * 60_000 }], "a pass keeps only what is left of its 30 minutes");
+});
