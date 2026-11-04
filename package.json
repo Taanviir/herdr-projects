@@ -1,0 +1,14 @@
+{
+  "name": "herdr-projects",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Herdr plugin: your projects and their past Claude or Codex sessions, with any dev server running in them",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
