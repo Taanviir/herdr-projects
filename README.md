@@ -66,12 +66,13 @@ the plugin's config directory (`herdr plugin config-dir taanviir.projects`):
 
 ## CI on the sidebar
 
-After a push, the workspace's sidebar row shows `● CI` while the GitHub Actions
-runs for the pushed commit are going, then `✓ CI` or `✗ CI`, with a
-notification naming any workflow that failed. A pass clears itself after 30
-minutes; a failure stays until the next watch. The popup shows the last result
-next to each project too, so CI on the others is one glance away. It needs
-`gh`, signed in.
+After a push, the sidebar row of every workspace with a pane in that checkout
+shows `● CI` while the GitHub Actions runs for the pushed commit are going,
+then `✓ CI` or `✗ CI`, with a notification naming any workflow that failed. The
+badge belongs to the checkout, so it moves to whichever workspace you open it
+in next. A pass clears itself after 30 minutes; a failure stays until the next
+watch. The popup shows the last result next to each project too, so CI on the
+others is one glance away. It needs `gh`, signed in.
 
 To start it on every `git push` made in a Herdr pane:
 
@@ -113,7 +114,7 @@ Nothing is written to either agent's files.
 | --- | --- |
 | plugin state dir, `sessions.json` | the session index |
 | plugin state dir, `crash.log` | errors from the popup |
-| plugin state dir, `ci-<workspace>.pid` | the CI watch running for a workspace |
+| plugin state dir, `ci-<hash>.pid` | the CI watch running for a checkout |
 | plugin state dir, `ci.json` | the last CI result for each checkout |
 
 ## Developing

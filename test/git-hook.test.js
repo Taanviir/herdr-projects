@@ -79,6 +79,6 @@ test("a push in a Herdr pane starts the watch for the pushed commit, and the rep
   assert.strictEqual(pushed.status, 0, pushed.stderr);
   const started = Date.now();
   while (!fs.existsSync(log) && Date.now() - started < 5000) spawnSync("sleep", ["0.05"]);
-  assert.strictEqual(fs.readFileSync(log, "utf8").trim(), `--watch w7 ${repo} ${sha} | ${state}`, "the watch keeps its results where the popup reads them");
+  assert.strictEqual(fs.readFileSync(log, "utf8").trim(), `--watch ${repo} ${sha} | ${state}`, "the watch keeps its results where the popup reads them");
   assert.match(fs.readFileSync(path.join(box.dir, "own"), "utf8"), new RegExp(`^HEAD ${sha} refs/heads/main `), "the repository's pre-push got git's input");
 });
