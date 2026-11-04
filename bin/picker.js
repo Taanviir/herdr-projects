@@ -18,6 +18,7 @@ const { workspaceFor, paneRunning } = require("../lib/place");
 const { listeners, table, uptimeSecs } = require("../lib/procs");
 const { servers: findServers } = require("../lib/servers");
 const { opener } = require("../lib/open");
+const { results: ciResults, shown: ciShown } = require("../lib/ci");
 const { Editor } = require("../lib/shared/editor");
 const { style, truncate, shortenPath, displayWidth } = require("../lib/shared/ui");
 const { runAsync, spawnDetached } = require("../lib/shared/herdr");
@@ -58,6 +59,7 @@ const state = {
   query: new Editor(),
   sessions: [],
   projects: [],
+  ci: {}, // the last CI watch per checkout, from ci.json
   servers: [], // running dev servers, each with the project it belongs to
   focus: "projects", // or "sessions"
   project: null, // the selected project's path
@@ -91,10 +93,15 @@ function lookForServers() {
     server.project = home?.path ?? null;
   }
   state.servers = found;
+  state.ci = ciResults(path.join(STATE_DIR, "ci.json"));
   if (state.confirmStop && !found.some((server) => server.root === state.confirmStop)) state.confirmStop = null;
 }
 
 const serverOf = (project) => state.servers.find((server) => server.project === project?.path) ?? null;
+
+// The last CI watch on the project's checkout, from `prefix+i` or a push.
+const ciOf = (project) => ciShown(state.ci?.[project?.path]);
+const CI_MARK = { running: style.warn("◌"), pass: style.ok("✓"), fail: style.danger("✗") };
 
 /* ---------- what is listed ---------- */
 
@@ -189,7 +196,8 @@ function projectRow({ project }, width, chosen) {
   const bar = chosen ? (state.focus === "projects" ? style.accent("┃") : style.dim("┃")) : " ";
   const open = workspaceFor(state.snapshot, project.path);
   const server = serverOf(project);
-  const right = `${server ? style.ok(`:${server.port}`) + " " : ""}${style.dim(age(project.updated))}`;
+  const ci = ciOf(project);
+  const right = `${ci ? CI_MARK[ci.state] + " " : ""}${server ? style.ok(`:${server.port}`) + " " : ""}${style.dim(age(project.updated))}`;
   const name = chosen ? style.bright(style.bold(project.name)) : style.bold(project.name);
   const left = `${open ? style.ok("●") : " "} ${name}`;
   return bar + spread(truncate(left, width - 2 - displayWidth(right)), right, width - 1);
@@ -226,6 +234,11 @@ function rightColumn({ entry, sessionAt }, width, rows) {
   if (server) {
     const stats = style.dim(`${duration(server.uptimeSecs)} · ${Math.round(server.rssKb / 1024)} MB`);
     out.push(spread(`${style.ok("▶")} ${truncate(server.command, width - 26)} ${style.ok(`:${server.port}`)}`, stats, width));
+  }
+  const ci = ciOf(project);
+  if (ci) {
+    const what = { running: "CI running", pass: "CI passed", fail: `CI failed${ci.failed?.length ? `: ${ci.failed.join(", ")}` : ""}` }[ci.state];
+    out.push(spread(`${CI_MARK[ci.state]} ${truncate(what, width - 22)}`, style.dim(`${ci.sha.slice(0, 7)} · ${age(ci.at)}`), width));
   }
   out.push("");
   if (!sessions.length) {

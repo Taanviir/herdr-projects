@@ -1,6 +1,6 @@
 id = "taanviir.projects"
 name = "Projects"
-version = "0.2.0"
+version = "0.3.0"
 min_herdr_version = "0.9.0"
 description = "Your projects and their past Claude or Codex sessions, with any dev server running in them, and CI on the sidebar"
 platforms = ["linux", "macos", "windows"]
@@ -16,6 +16,12 @@ id = "ci"
 title = "Watch CI for this commit"
 contexts = ["workspace"]
 command = ["node", "bin/ci.js"]
+
+[[actions]]
+id = "git-hook"
+title = "Watch CI on every git push"
+contexts = ["workspace"]
+command = ["node", "bin/git-hook.js"]
 
 [[actions]]
 id = "setup"

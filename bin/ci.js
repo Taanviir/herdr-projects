@@ -9,7 +9,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { run, notify, spawnDetached } = require("../lib/shared/herdr");
 const { context, STATE_DIR } = require("../lib/shared/term");
-const { SOURCE, BADGES, PASS_TTL_MS, failed, sh, watch } = require("../lib/ci");
+const { SOURCE, BADGES, PASS_TTL_MS, failed, sh, watch, remember } = require("../lib/ci");
+
+const RESULTS = path.join(STATE_DIR, "ci.json");
 
 const pidFile = (workspace) => path.join(STATE_DIR, `ci-${workspace.replace(/[^\w-]/g, "_")}.pid`);
 
@@ -44,7 +46,8 @@ async function watching(workspace, cwd, sha) {
   } catch { /* none running */ }
   fs.writeFileSync(file, String(process.pid));
 
-  const name = path.basename(cwd);
+  const checkout = sh("git", ["rev-parse", "--show-toplevel"], cwd) ?? cwd;
+  const name = path.basename(checkout);
   let runs = [];
   const result = await watch({
     sha,
@@ -52,6 +55,7 @@ async function watching(workspace, cwd, sha) {
     show: (state, found) => {
       runs = found;
       show(workspace, state);
+      remember(RESULTS, checkout, state && { state, sha, failed: failed(found), at: Date.now() });
     },
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   });
