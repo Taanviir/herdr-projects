@@ -328,8 +328,7 @@ function onKey(chunk, key) {
   const tab = switchFor(key, "projects");
   if (tab && tab.id !== "projects") {
     const folder = entry?.project.path ?? origin.cwd;
-    switchTo(tab, { cwd: folder, workspace: workspaceFor(state.snapshot, folder) ?? origin.workspace, pane: origin.pane });
-    return ui.quit(0);
+    return switchTo(tab, { cwd: folder, workspace: workspaceFor(state.snapshot, folder) ?? origin.workspace, pane: origin.pane }, () => clearInterval(serverTimer));
   }
   const name = key.name;
   if (name === "up" || name === "down") return move(name === "up" ? -1 : 1);
@@ -392,7 +391,7 @@ runAsync(["api", "snapshot"], { timeout: 1500 }).then((res) => {
   ui.scheduleRender();
 });
 
-setInterval(() => {
+const serverTimer = setInterval(() => {
   lookForServers();
   ui.scheduleRender();
 }, SERVERS_MS);
